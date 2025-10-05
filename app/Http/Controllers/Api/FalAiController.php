@@ -17,7 +17,7 @@ class FalAiController extends Controller
     {
         $this->apiKey = env('FAL_AI_API_KEY');
         $this->baseUrl = env('FAL_AI_BASE_URL', 'https://fal.run');
-        $this->defaultModel = env('FAL_AI_DEFAULT_MODEL', 'fal-ai/flux/dev');
+        $this->defaultModel = env('FAL_AI_DEFAULT_MODEL', 'fal-ai/ideogram/character');
     }
 
     /**
@@ -27,14 +27,11 @@ class FalAiController extends Controller
     public function test()
     {
         try {
-            // 簡單測試：生成一張測試圖
             $response = Http::withHeaders([
                 'Authorization' => 'Key ' . $this->apiKey,
                 'Content-Type' => 'application/json',
             ])->timeout(60)->post("{$this->baseUrl}/{$this->defaultModel}", [
-                'prompt' => 'A simple test image, minimalist style',
-                'image_size' => 'square_hd',
-                'num_inference_steps' => 4,
+                'prompt' => 'A simple test character, minimalist style',
                 'num_images' => 1,
             ]);
 
@@ -70,12 +67,22 @@ class FalAiController extends Controller
     {
         $models = [
             [
-                'id' => 'fal-ai/flux/dev',
-                'name' => 'FLUX.1 [dev]',
-                'description' => '高品質、快速的圖像生成（推薦）',
+                'id' => 'fal-ai/ideogram/character',
+                'name' => 'Ideogram Character',
+                'description' => '專業角色生成，支援圖生圖（推薦）',
                 'speed' => 'fast',
                 'quality' => 'high',
                 'recommended' => true,
+                'supports_image_to_image' => true,
+            ],
+            [
+                'id' => 'fal-ai/flux/dev',
+                'name' => 'FLUX.1 [dev]',
+                'description' => '高品質、快速的圖像生成',
+                'speed' => 'fast',
+                'quality' => 'high',
+                'recommended' => false,
+                'supports_image_to_image' => false,
             ],
             [
                 'id' => 'fal-ai/flux/schnell',
@@ -84,14 +91,7 @@ class FalAiController extends Controller
                 'speed' => 'fastest',
                 'quality' => 'medium',
                 'recommended' => false,
-            ],
-            [
-                'id' => 'fal-ai/flux-pro',
-                'name' => 'FLUX.1 [pro]',
-                'description' => '最高品質，需要更多時間',
-                'speed' => 'slow',
-                'quality' => 'highest',
-                'recommended' => false,
+                'supports_image_to_image' => false,
             ],
         ];
 
@@ -112,25 +112,25 @@ class FalAiController extends Controller
             'prompt' => 'required|string|max:2000',
             'negative_prompt' => 'nullable|string|max:1000',
             'model' => 'nullable|string',
-            'image_size' => 'nullable|string',
             'num_images' => 'nullable|integer|min:1|max:4',
-            'num_inference_steps' => 'nullable|integer|min:4|max:50',
+            'image_url' => 'nullable|url', // 支援圖生圖
+            'strength' => 'nullable|numeric|min:0|max:1', // 圖生圖強度
         ]);
 
         $model = $validated['model'] ?? $this->defaultModel;
-        $imageSize = $validated['image_size'] ?? 'portrait_4_3';
         $numImages = $validated['num_images'] ?? 1;
-        $numSteps = $validated['num_inference_steps'] ?? 28;
 
         try {
             $payload = [
                 'prompt' => $validated['prompt'],
-                'image_size' => $imageSize,
-                'num_inference_steps' => $numSteps,
-                'guidance_scale' => 3.5,
                 'num_images' => $numImages,
-                'enable_safety_checker' => true,
             ];
+
+            // 如果有提供圖片 URL，則使用圖生圖模式
+            if (!empty($validated['image_url'])) {
+                $payload['image_url'] = $validated['image_url'];
+                $payload['strength'] = $validated['strength'] ?? 0.75; // 預設強度 0.75
+            }
 
             if (!empty($validated['negative_prompt'])) {
                 $payload['negative_prompt'] = $validated['negative_prompt'];
@@ -150,7 +150,7 @@ class FalAiController extends Controller
                     'prompt' => $validated['prompt'],
                     'model' => $model,
                     'seed' => $data['seed'] ?? null,
-                    'has_nsfw_concepts' => $data['has_nsfw_concepts'] ?? [],
+                    'is_image_to_image' => !empty($validated['image_url']),
                 ]);
             }
 
@@ -183,6 +183,8 @@ class FalAiController extends Controller
             'accessories' => 'nullable|array',
             'emotion' => 'nullable|string',
             'model' => 'nullable|string',
+            'image_url' => 'nullable|url', // 支援圖生圖
+            'strength' => 'nullable|numeric|min:0|max:1',
         ]);
 
         // 建構 prompt
@@ -190,17 +192,21 @@ class FalAiController extends Controller
         $model = $validated['model'] ?? $this->defaultModel;
 
         try {
+            $payload = [
+                'prompt' => $prompt,
+                'num_images' => 1,
+            ];
+
+            // 如果有提供圖片 URL，則使用圖生圖模式
+            if (!empty($validated['image_url'])) {
+                $payload['image_url'] = $validated['image_url'];
+                $payload['strength'] = $validated['strength'] ?? 0.75;
+            }
+
             $response = Http::withHeaders([
                 'Authorization' => 'Key ' . $this->apiKey,
                 'Content-Type' => 'application/json',
-            ])->timeout(120)->post("{$this->baseUrl}/{$model}", [
-                'prompt' => $prompt,
-                'image_size' => 'portrait_4_3',
-                'num_inference_steps' => 28,
-                'guidance_scale' => 3.5,
-                'num_images' => 1,
-                'enable_safety_checker' => true,
-            ]);
+            ])->timeout(120)->post("{$this->baseUrl}/{$model}", $payload);
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -211,6 +217,7 @@ class FalAiController extends Controller
                     'prompt' => $prompt,
                     'character_data' => $validated,
                     'seed' => $data['seed'] ?? null,
+                    'is_image_to_image' => !empty($validated['image_url']),
                 ]);
             }
 
