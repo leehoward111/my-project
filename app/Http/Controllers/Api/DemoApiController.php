@@ -11,11 +11,13 @@ class DemoApiController extends Controller
 {
     private $falApiKey;
     private $falBaseUrl;
+    private $defaultModel;
 
     public function __construct()
     {
         $this->falApiKey = env('FAL_AI_API_KEY');
         $this->falBaseUrl = env('FAL_AI_BASE_URL', 'https://fal.run');
+        $this->defaultModel = env('FAL_AI_DEFAULT_MODEL', 'fal-ai/ideogram/character');
     }
 
     public function handle(Request $request)
@@ -25,7 +27,7 @@ class DemoApiController extends Controller
         return match ($step) {
             'entry_qr' => response()->json([
                 'success' => true,
-                'qr_url'  => url('/placeholder-qr.png'),
+                'qr_url' => url('/placeholder-qr.png'),
                 'message' => '請用手機掃描開始體驗'
             ]),
 
@@ -38,9 +40,9 @@ class DemoApiController extends Controller
                 'success' => true,
                 'dominant_emotion' => 'happy',
                 'emotion_sequence' => [
-                    ['time'=>'00:05','emotion'=>'happy','confidence'=>0.82],
-                    ['time'=>'00:12','emotion'=>'surprised','confidence'=>0.76],
-                    ['time'=>'00:21','emotion'=>'neutral','confidence'=>0.64],
+                    ['time' => '00:05', 'emotion' => 'happy', 'confidence' => 0.82],
+                    ['time' => '00:12', 'emotion' => 'surprised', 'confidence' => 0.76],
+                    ['time' => '00:21', 'emotion' => 'neutral', 'confidence' => 0.64],
                 ],
                 'analysis_summary' => '整體偏正向、接受新奇元素',
             ]),
@@ -61,17 +63,17 @@ class DemoApiController extends Controller
                 'overall_assessment' => '偏外向、喜歡嘗試新風格',
                 'character_profile' => [
                     'character_archetype' => '探索者',
-                    'personality_type'    => 'ENFP',
-                    'traits'              => ['好奇','自發','友善'],
-                    'style_keywords'      => ['清新','輕盈','機能'],
-                    'color_palette'       => ['#7c3aed','#06b6d4','#f59e0b'],
+                    'personality_type' => 'ENFP',
+                    'traits' => ['好奇', '自發', '友善'],
+                    'style_keywords' => ['清新', '輕盈', '機能'],
+                    'color_palette' => ['#7c3aed', '#06b6d4', '#f59e0b'],
                 ],
             ]),
 
             'output_profile' => response()->json([
                 'success' => true,
                 'character_profile' => [
-                    'profile_id' => 'STYLE_'.now()->timestamp,
+                    'profile_id' => 'STYLE_' . now()->timestamp,
                     'style_recommendations' => [
                         '選擇輕盈布料與中性色作為日常基底',
                         '以亮色小配件提升活力感',
@@ -85,55 +87,78 @@ class DemoApiController extends Controller
                 ],
             ]),
 
-            // 新增：生成風格形象圖
+            // 生成風格形象圖（支援文生圖和圖生圖）
             'generate_style_image' => $this->generateStyleImage($request),
 
-            default => response()->json(['success'=>false,'error'=>'Unknown step'], 400),
+            default => response()->json(['success' => false, 'error' => 'Unknown step'], 400),
         };
     }
 
     /**
      * 使用 fal.ai 生成風格形象圖
+     * 支援文生圖和圖生圖兩種模式
      */
     private function generateStyleImage(Request $request)
     {
         $characterData = $request->input('character_data', []);
         $emotion = $request->input('emotion', 'happy');
         $accessories = $request->input('accessories', []);
+        $imageUrl = $request->input('image_url'); // 圖生圖來源圖片
+        $strength = $request->input('strength', 0.75); // 圖生圖強度
 
         // 建構 prompt
         $prompt = $this->buildPrompt($characterData, $emotion, $accessories);
 
         try {
-            Log::info('開始生成風格圖片', ['prompt' => $prompt]);
+            Log::info('開始生成風格圖片', [
+                'prompt' => $prompt,
+                'model' => $this->defaultModel,
+                'is_image_to_image' => !empty($imageUrl),
+            ]);
+
+            $payload = [
+                'prompt' => $prompt,
+                'num_images' => 1,
+            ];
+
+            // 如果有提供圖片 URL，則使用圖生圖模式
+            if (!empty($imageUrl)) {
+                $payload['image_url'] = $imageUrl;
+                $payload['strength'] = $strength;
+                Log::info('使用圖生圖模式', [
+                    'source_image' => $imageUrl,
+                    'strength' => $strength,
+                ]);
+            }
 
             $response = Http::withHeaders([
                 'Authorization' => 'Key ' . $this->falApiKey,
                 'Content-Type' => 'application/json',
-            ])->timeout(120)->post("{$this->falBaseUrl}/fal-ai/flux/dev", [
-                'prompt' => $prompt,
-                'image_size' => 'portrait_4_3',
-                'num_inference_steps' => 28,
-                'guidance_scale' => 3.5,
-                'num_images' => 1,
-                'enable_safety_checker' => true,
-            ]);
+            ])->timeout(120)->post("{$this->falBaseUrl}/{$this->defaultModel}", $payload);
 
             if ($response->successful()) {
                 $data = $response->json();
 
-                Log::info('風格圖片生成成功', ['image_url' => $data['images'][0]['url'] ?? null]);
+                Log::info('風格圖片生成成功', [
+                    'image_url' => $data['images'][0]['url'] ?? null,
+                    'seed' => $data['seed'] ?? null,
+                ]);
 
                 return response()->json([
                     'success' => true,
                     'image_url' => $data['images'][0]['url'] ?? null,
                     'prompt' => $prompt,
                     'seed' => $data['seed'] ?? null,
+                    'model' => $this->defaultModel,
+                    'is_image_to_image' => !empty($imageUrl),
                     'message' => '風格形象圖生成成功',
                 ]);
             }
 
-            Log::error('fal.ai API 錯誤', ['response' => $response->body()]);
+            Log::error('fal.ai API 錯誤', [
+                'status' => $response->status(),
+                'response' => $response->body(),
+            ]);
             throw new \Exception('API 回應錯誤：' . $response->status());
 
         } catch (\Exception $e) {
