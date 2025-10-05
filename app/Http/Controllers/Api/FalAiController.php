@@ -15,7 +15,7 @@ class FalAiController extends Controller
 
     public function __construct()
     {
-        $this->apiKey = env('FAL_AI_API_KEY', 'c850557b-7cbd-410e-bd6e-cf38eeb96ea8:4d3b20e975d93c8172109b6dec2bd1d2');
+        $this->apiKey = env('FAL_AI_API_KEY');
         $this->baseUrl = env('FAL_AI_BASE_URL', 'https://fal.run');
         $this->defaultModel = env('FAL_AI_DEFAULT_MODEL', 'fal-ai/flux/dev');
     }
