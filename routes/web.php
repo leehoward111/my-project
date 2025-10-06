@@ -9,7 +9,7 @@ Route::view('/', 'landing')->name('landing');
 Route::view('/demo', 'demo')->name('demo');
 
 // API 測試頁
-Route::view('/workflow/test', 'workflow.test')->name('workflow.test');
+// Route::view('/workflow/test', 'workflow.test')->name('workflow.test');
 
 // 超好用的 QR 除錯頁
 Route::get('/qr-debug', function () {

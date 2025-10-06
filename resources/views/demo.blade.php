@@ -3,6 +3,7 @@
 @section('title', 'AI 個人風格分析 - 體驗流程')
 
 @section('head')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         * {
             box-sizing: border-box;
@@ -173,27 +174,6 @@
             font-size: 14px
         }
 
-        .qr-box {
-            background: linear-gradient(135deg, rgba(124, 58, 237, .08), rgba(6, 182, 212, .08));
-            border: 1px solid rgba(124, 58, 237, .2);
-            border-radius: 14px;
-            padding: 28px;
-            text-align: center;
-            margin: 16px 0
-        }
-
-        .qr-box h3 {
-            margin: 0 0 8px;
-            font-size: 18px;
-            color: #0f172a
-        }
-
-        .qr-box p {
-            color: #475569;
-            margin: 8px 0;
-            font-size: 14px
-        }
-
         .upload-area {
             border: 2px dashed rgba(124, 58, 237, .3);
             border-radius: 14px;
@@ -318,7 +298,8 @@
             border-radius: 12px;
             padding: 18px;
             text-align: center;
-            transition: .3s
+            transition: .3s;
+            cursor: pointer;
         }
 
         .acc-card.selected {
@@ -440,7 +421,6 @@
             </div>
             <div class="links">
                 <a class="btn secondary" href="{{ route('landing') }}">首頁</a>
-                <a class="btn secondary" href="{{ route('workflow.test') }}">API 測試</a>
             </div>
         </div>
     </nav>
@@ -448,35 +428,32 @@
     <main class="main">
         <div class="container">
 
-            <!-- Step 1: 入口 QR -->
+            <!-- Step 1: 照片上傳 -->
             <div class="step-card active" id="step1">
                 <div class="step-header">
                     <div class="step-num">1</div>
-                    <div class="step-title">入口 QR 碼</div>
-                </div>
-                <div class="step-content">
-                    <p class="step-desc">掃描 QR 碼進入體驗，或直接開始</p>
-                    <div class="qr-box">
-                        <h3>歡迎使用個人風格分析</h3>
-                        <p>掃描 QR 碼或點擊下方按鈕開始</p>
-                        <div id="entryQR" style="margin:16px 0"></div>
-                        <button class="btn" onclick="generateEntryQR()">生成 QR 碼</button>
-                        <button class="btn secondary" onclick="startDirectly()" style="margin-left:8px">直接開始</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step 2: 照片上傳 -->
-            <div class="step-card" id="step2">
-                <div class="step-header">
-                    <div class="step-num">2</div>
                     <div class="step-title">上傳照片</div>
                 </div>
                 <div class="step-content">
-                    <p class="step-desc">上傳個人照片建立風格基礎</p>
+                    <p class="step-desc">選擇性別並上傳個人照片建立風格基礎</p>
+
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 12px; font-size: 16px; color: #0f172a;">選擇性別</h4>
+                        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="acc-card" id="maleBtn" onclick="selectGender('male')">
+                                <h4>👨 男性</h4>
+                                <p>Male</p>
+                            </div>
+                            <div class="acc-card" id="femaleBtn" onclick="selectGender('female')">
+                                <h4>👩 女性</h4>
+                                <p>Female</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="upload-area" onclick="document.getElementById('photoInput').click()">
                         <div id="photoPreview">
-                            <p style="font-size:16px;margin-bottom:8px">📸 點擊上傳照片</p>
+                            <p style="font-size:16px;margin-bottom:8px">點擊上傳照片</p>
                             <p>支援 JPG, PNG</p>
                         </div>
                     </div>
@@ -487,17 +464,17 @@
                 </div>
             </div>
 
-            <!-- Step 3: 影片情緒 -->
-            <div class="step-card" id="step3">
+            <!-- Step 2: 影片情緒 -->
+            <div class="step-card" id="step2">
                 <div class="step-header">
-                    <div class="step-num">3</div>
+                    <div class="step-num">2</div>
                     <div class="step-title">影片情緒偵測</div>
                 </div>
                 <div class="step-content">
                     <p class="step-desc">觀看影片時即時偵測情緒變化</p>
                     <div class="video-box" id="videoPlayer">
                         <div>
-                            <h3>🎬 風格時尚介紹影片</h3>
+                            <h3>風格時尚介紹影片</h3>
                             <p>點擊開始播放並偵測情緒</p>
                             <button class="btn" onclick="startVideoAnalysis()" style="margin-top:16px">開始播放</button>
                         </div>
@@ -510,57 +487,41 @@
                 </div>
             </div>
 
-            <!-- Step 4: 配飾搭配 -->
+            <!-- Step 3: 配飾搭配 + 性格分析 -->
+            <div class="step-card" id="step3">
+                <div class="step-header">
+                    <div class="step-num">3</div>
+                    <div class="step-title">智能配飾搭配 & 角色性格分析</div>
+                </div>
+                <div class="step-content">
+                    <p class="step-desc">基於情緒分析生成配飾建議與性格原型</p>
+
+                    <h4 style="margin: 20px 0 10px; font-size: 18px; color: #0f172a;">配飾搭配</h4>
+                    <div id="accessoriesDisplay" class="grid"></div>
+
+                    <h4 style="margin: 30px 0 10px; font-size: 18px; color: #0f172a;">性格分析</h4>
+                    <div id="characterAnalysis"></div>
+
+                    <button class="btn" id="analysisBtn" onclick="generateAnalysis()" disabled>開始分析</button>
+                </div>
+            </div>
+
+            <!-- Step 4: 生成風格形象 + 下載檔案 -->
             <div class="step-card" id="step4">
                 <div class="step-header">
                     <div class="step-num">4</div>
-                    <div class="step-title">智能配飾搭配</div>
+                    <div class="step-title">生成風格形象 & 下載檔案</div>
                 </div>
                 <div class="step-content">
-                    <p class="step-desc">基於情緒分析生成配飾建議</p>
-                    <div id="accessoriesDisplay" class="grid"></div>
-                    <button class="btn" id="accessoryBtn" onclick="generateAccessories()" disabled>生成配飾建議</button>
-                </div>
-            </div>
+                    <p class="step-desc">使用 AI 生成專屬風格形象圖並下載完整檔案</p>
 
-            <!-- Step 5: 性格分析 -->
-            <div class="step-card" id="step5">
-                <div class="step-header">
-                    <div class="step-num">5</div>
-                    <div class="step-title">角色性格分析</div>
-                </div>
-                <div class="step-content">
-                    <p class="step-desc">綜合分析生成性格原型</p>
-                    <div id="characterAnalysis"></div>
-                    <button class="btn" id="analysisBtn" onclick="analyzeCharacter()" disabled>分析性格</button>
-                </div>
-            </div>
-
-            <!-- Step 6: 生成風格形象 -->
-            <div class="step-card" id="step6">
-                <div class="step-header">
-                    <div class="step-num">6</div>
-                    <div class="step-title">生成風格形象</div>
-                </div>
-                <div class="step-content">
-                    <p class="step-desc">使用 AI 生成專屬風格形象圖</p>
+                    <h4 style="margin: 20px 0 10px; font-size: 18px; color: #0f172a;">風格形象</h4>
                     <div id="imageGenArea"></div>
                     <button class="btn" id="imageBtn" onclick="generateStyleImage()" disabled>生成形象圖</button>
-                </div>
-            </div>
 
-            <!-- Step 7: 輸出檔案 -->
-            <div class="step-card" id="step7">
-                <div class="step-header">
-                    <div class="step-num">7</div>
-                    <div class="step-title">個人風格檔案</div>
-                </div>
-                <div class="step-content">
-                    <p class="step-desc">生成完整的個人風格角色檔案</p>
-                    <div id="finalProfile"></div>
-                    <button class="btn" id="profileBtn" onclick="generateProfile()" disabled>生成檔案</button>
+                    <div id="finalProfile" style="margin-top: 30px;"></div>
                     <button class="btn success" id="downloadBtn" onclick="downloadProfile()" disabled
-                        style="margin-left:8px">下載檔案</button>
+                        style="margin-top:16px">下載完整檔案</button>
                 </div>
             </div>
 
@@ -571,8 +532,13 @@
 @section('scripts')
     <script>
         const API_DEMO = "{{ url('/api/demo') }}";
+        const API_UPLOAD = "{{ url('/api/upload-photo') }}";
         let currentStep = 1;
         let userData = {
+            gender: null,
+            photoFile: null,
+            uploadedPhotoUrl: null,
+            uploadedPhotoBase64: null,
             photoUploaded: false,
             emotionData: null,
             accessoryData: null,
@@ -580,64 +546,82 @@
             styleImageUrl: null
         };
 
-        async function generateEntryQR() {
-            try {
-                const res = await fetch(API_DEMO, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        step: 'entry_qr'
-                    })
-                });
-                const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'QR 生成失敗');
-                document.getElementById('entryQR').innerHTML =
-                    `<img src="${data.qr_url}" alt="QR碼" style="max-width:180px;border-radius:12px;background:#fff;padding:8px"><p style="margin-top:10px;font-size:14px">${data.message}</p>`;
-            } catch (e) {
-                alert('QR碼生成失敗：' + e.message);
+        function selectGender(gender) {
+            userData.gender = gender;
+            document.getElementById('maleBtn').classList.remove('selected');
+            document.getElementById('femaleBtn').classList.remove('selected');
+            if (gender === 'male') {
+                document.getElementById('maleBtn').classList.add('selected');
+            } else {
+                document.getElementById('femaleBtn').classList.add('selected');
             }
+            checkUploadReady();
         }
 
-        function startDirectly() {
-            nextStep();
+        function checkUploadReady() {
+            const btn = document.getElementById('uploadBtn');
+            if (userData.gender && userData.photoFile) {
+                btn.disabled = false;
+            } else {
+                btn.disabled = true;
+            }
         }
 
         function handlePhotoUpload() {
             const file = document.getElementById('photoInput').files[0];
             if (file) {
+                userData.photoFile = file;
                 const r = new FileReader();
                 r.onload = e => {
-                    document.getElementById('photoPreview').innerHTML =
-                        `<img src="${e.target.result}" class="preview-img" alt="預覽"><p style="margin-top:8px">照片預覽</p>`;
+                    document.getElementById('photoPreview').innerHTML = '<img src="' + e.target.result + '" class="preview-img" alt="預覽"><p style="margin-top:8px">照片預覽</p>';
                 };
                 r.readAsDataURL(file);
-                document.getElementById('uploadBtn').disabled = false;
+                checkUploadReady();
             }
         }
 
         async function uploadPhoto() {
+            if (!userData.gender) {
+                alert('請先選擇性別');
+                return;
+            }
+            if (!userData.photoFile) {
+                alert('請先上傳照片');
+                return;
+            }
+
             const btn = document.getElementById('uploadBtn');
             btn.innerHTML = '上傳中<span class="loading"></span>';
             btn.disabled = true;
+
             try {
-                const res = await fetch(API_DEMO, {
+                const formData = new FormData();
+                formData.append('photo', userData.photoFile);
+                formData.append('gender', userData.gender);
+
+                const uploadRes = await fetch(API_UPLOAD, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
-                    body: JSON.stringify({
-                        step: 'photo_upload'
-                    })
+                    body: formData
                 });
-                const data = await res.json();
-                if (!data.success) throw new Error(data.error || '上傳失敗');
+
+                const uploadData = await uploadRes.json();
+
+                if (!uploadData.success) {
+                    throw new Error(uploadData.error || '上傳失敗');
+                }
+
+                userData.uploadedPhotoUrl = uploadData.photo_url;
+                userData.uploadedPhotoBase64 = uploadData.photo_base64;
                 userData.photoUploaded = true;
+
                 const resultDiv = document.getElementById('uploadResult');
-                resultDiv.innerHTML = `<h4>✓ 上傳成功</h4><p>${data.message}</p>`;
+                resultDiv.innerHTML = '<h4>上傳成功</h4><p>性別：' + (userData.gender === 'male' ? '男性' : '女性') + '</p><img src="' + uploadData.photo_url + '" class="preview-img" alt="已上傳" style="margin-top:12px">';
                 resultDiv.style.display = 'block';
                 btn.innerHTML = '上傳完成';
+
                 setTimeout(nextStep, 800);
             } catch (e) {
                 alert('上傳失敗：' + e.message);
@@ -648,14 +632,15 @@
 
         async function startVideoAnalysis() {
             const videoPlayer = document.getElementById('videoPlayer');
-            videoPlayer.innerHTML =
-                `<div><h3 style="color:#fff">⏯️ 播放中...</h3><p style="color:#cbd5e1">正在偵測情緒反應</p><div class="loading" style="margin:20px auto"></div></div>`;
+            videoPlayer.innerHTML = '<div><h3 style="color:#fff">播放中...</h3><p style="color:#cbd5e1">正在偵測情緒反應</p><div class="loading" style="margin:20px auto"></div></div>';
+
             setTimeout(async () => {
                 try {
                     const res = await fetch(API_DEMO, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
                         body: JSON.stringify({
                             step: 'video_emotion'
@@ -663,19 +648,18 @@
                     });
                     const data = await res.json();
                     if (!data.success) throw new Error(data.error || '偵測失敗');
+
                     userData.emotionData = data;
                     const timeline = document.getElementById('emotionTimeline');
                     const points = document.getElementById('emotionPoints');
-                    points.innerHTML = data.emotion_sequence.map(it =>
-                        `<div class="emotion-item"><strong>${it.time}</strong><span>${getEmotionText(it.emotion)} (${(it.confidence*100).toFixed(0)}%)</span></div>`
-                        ).join('');
+                    points.innerHTML = data.emotion_sequence.map(it => '<div class="emotion-item"><strong>' + it.time + '</strong><span>' + getEmotionText(it.emotion) + ' (' + (it.confidence * 100).toFixed(0) + '%)</span></div>').join('');
                     timeline.style.display = 'block';
+
                     const summary = document.getElementById('emotionSummary');
-                    summary.innerHTML =
-                        `<h4>✓ 分析完成</h4><p><strong>主導情緒：</strong>${getEmotionText(data.dominant_emotion)}</p><p><strong>總結：</strong>${data.analysis_summary}</p>`;
+                    summary.innerHTML = '<h4>分析完成</h4><p><strong>主導情緒：</strong>' + getEmotionText(data.dominant_emotion) + '</p><p><strong>總結：</strong>' + data.analysis_summary + '</p>';
                     summary.style.display = 'block';
-                    videoPlayer.innerHTML =
-                        `<div><h3 style="color:#fff">✅ 播放完畢</h3><p style="color:#cbd5e1">情緒偵測已完成</p></div>`;
+
+                    videoPlayer.innerHTML = '<div><h3 style="color:#fff">播放完畢</h3><p style="color:#cbd5e1">情緒偵測已完成</p></div>';
                     setTimeout(nextStep, 1000);
                 } catch (e) {
                     alert('偵測失敗：' + e.message);
@@ -683,52 +667,36 @@
             }, 2000);
         }
 
-        async function generateAccessories() {
-            const btn = document.getElementById('accessoryBtn');
-            btn.innerHTML = '生成中<span class="loading"></span>';
+        async function generateAnalysis() {
+            const btn = document.getElementById('analysisBtn');
+            btn.innerHTML = '分析中<span class="loading"></span>';
             btn.disabled = true;
+
             try {
-                const res = await fetch(API_DEMO, {
+                const accRes = await fetch(API_DEMO, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
                     body: JSON.stringify({
                         step: 'accessory_matching',
                         emotion: userData.emotionData?.dominant_emotion || 'happy'
                     })
                 });
-                const data = await res.json();
-                if (!data.success) throw new Error(data.error || '搭配失敗');
-                userData.accessoryData = data;
-                const display = document.getElementById('accessoriesDisplay');
-                const label = k => ({
-                    hat: '帽子',
-                    glasses: '眼鏡',
-                    jewelry: '飾品',
-                    bag: '包包'
-                })[k] || k;
-                display.innerHTML = Object.entries(data.accessories).map(([k, v]) =>
-                    `<div class="acc-card selected"><h4>${label(k)}</h4><p style="font-weight:600;margin:8px 0">${v}</p><p>${data.styling_concept}</p></div>`
-                    ).join('');
-                btn.innerHTML = '生成完成';
-                setTimeout(nextStep, 800);
-            } catch (e) {
-                alert('搭配失敗：' + e.message);
-                btn.innerHTML = '重新生成';
-                btn.disabled = false;
-            }
-        }
+                const accData = await accRes.json();
+                if (!accData.success) throw new Error('配飾搭配失敗');
+                userData.accessoryData = accData;
 
-        async function analyzeCharacter() {
-            const btn = document.getElementById('analysisBtn');
-            btn.innerHTML = '分析中<span class="loading"></span>';
-            btn.disabled = true;
-            try {
-                const res = await fetch(API_DEMO, {
+                const display = document.getElementById('accessoriesDisplay');
+                const label = k => ({ hat: '帽子', glasses: '眼鏡', jewelry: '飾品', bag: '包包' })[k] || k;
+                display.innerHTML = Object.entries(accData.accessories).map(([k, v]) => '<div class="acc-card selected"><h4>' + label(k) + '</h4><p style="font-weight:600;margin:8px 0">' + v + '</p></div>').join('');
+
+                const charRes = await fetch(API_DEMO, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
                     body: JSON.stringify({
                         step: 'character_analysis',
@@ -736,22 +704,14 @@
                         accessories: userData.accessoryData?.accessories || {}
                     })
                 });
-                const data = await res.json();
-                if (!data.success) throw new Error(data.error || '分析失敗');
-                userData.characterData = data.character_profile;
+                const charData = await charRes.json();
+                if (!charData.success) throw new Error('性格分析失敗');
+                userData.characterData = charData.character_profile;
+
                 const analysis = document.getElementById('characterAnalysis');
                 const prof = userData.characterData;
-                analysis.innerHTML = `
-    <div class="profile-box">
-      <h3>${prof.character_archetype}</h3>
-      <h4 style="margin:8px 0;color:#06b6d4">${prof.personality_type}</h4>
-      <div class="traits">${prof.traits.map(t => `<div class="trait">${t}</div>`).join('')}</div>
-      <h4>風格關鍵字</h4>
-      <p style="margin:8px 0;color:#475569">${prof.style_keywords.join(' • ')}</p>
-      <h4>專屬色彩</h4>
-      <div class="colors">${prof.color_palette.map(c => `<div class="color" style="background:${c}"></div>`).join('')}</div>
-      <p style="margin-top:16px;font-style:italic;color:#475569">${data.overall_assessment}</p>
-    </div>`;
+                analysis.innerHTML = '<div class="profile-box"><h3>' + prof.character_archetype + '</h3><h4 style="margin:8px 0;color:#06b6d4">' + prof.personality_type + '</h4><div class="traits">' + prof.traits.map(t => '<div class="trait">' + t + '</div>').join('') + '</div><h4>風格關鍵字</h4><p style="margin:8px 0;color:#475569">' + prof.style_keywords.join(' • ') + '</p><h4>專屬色彩</h4><div class="colors">' + prof.color_palette.map(c => '<div class="color" style="background:' + c + '"></div>').join('') + '</div></div>';
+
                 btn.innerHTML = '分析完成';
                 setTimeout(nextStep, 800);
             } catch (e) {
@@ -766,16 +726,19 @@
             const area = document.getElementById('imageGenArea');
             btn.innerHTML = '生成中（約 30 秒）<span class="loading"></span>';
             btn.disabled = true;
-            area.innerHTML =
-                `<div class="image-generating"><h4>🎨 AI 正在生成您的專屬風格形象...</h4><p>這需要約 30 秒時間，請稍候</p><div class="loading" style="margin:20px auto"></div></div>`;
+            area.innerHTML = '<div class="image-generating"><h4>AI 正在生成您的專屬風格形象...</h4><p>這需要約 30 秒時間，請稍候</p><div class="loading" style="margin:20px auto"></div></div>';
+
             try {
                 const res = await fetch(API_DEMO, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
                     body: JSON.stringify({
                         step: 'generate_style_image',
+                        image_url: userData.uploadedPhotoBase64,
+                        gender: userData.gender,
                         character_data: userData.characterData,
                         emotion: userData.emotionData?.dominant_emotion || 'happy',
                         accessories: userData.accessoryData?.accessories || {}
@@ -784,89 +747,65 @@
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error || '生成失敗');
                 userData.styleImageUrl = data.image_url;
-                area.innerHTML =
-                    `<div class="result-box"><h4>✨ 風格形象生成成功！</h4><img src="${data.image_url}" alt="風格形象" class="generated-img" /><p style="font-size:13px;color:#64748b;margin-top:8px">Prompt: ${data.prompt}</p></div>`;
+
+                area.innerHTML = '<div class="result-box"><h4>風格形象生成成功！</h4><p style="margin: 12px 0;"><strong>原始照片：</strong></p><img src="' + userData.uploadedPhotoUrl + '" alt="原始照片" class="generated-img" style="max-width: 300px;" /><p style="margin: 12px 0;"><strong>生成的風格形象：</strong></p><img src="' + data.image_url + '" alt="風格形象" class="generated-img" /><p style="font-size:13px;color:#64748b;margin-top:8px">性別：' + (userData.gender === 'male' ? '男性' : '女性') + '</p></div>';
                 btn.innerHTML = '生成完成';
-                setTimeout(nextStep, 1000);
+
+                document.getElementById('downloadBtn').disabled = false;
+                document.getElementById('finalProfile').innerHTML = '<div class="result-box"><h4>檔案已準備完成</h4><p>點擊下方按鈕下載您的完整風格檔案</p></div>';
             } catch (e) {
                 alert('圖片生成失敗：' + e.message);
-                area.innerHTML =
-                    `<div class="result-box" style="border-color:#ef4444"><h4 style="color:#ef4444">✗ 生成失敗</h4><p>${e.message}</p></div>`;
+                area.innerHTML = '<div class="result-box" style="border-color:#ef4444"><h4 style="color:#ef4444">生成失敗</h4><p>' + e.message + '</p></div>';
                 btn.innerHTML = '重新生成';
                 btn.disabled = false;
             }
         }
 
-        async function generateProfile() {
-            const btn = document.getElementById('profileBtn');
-            btn.innerHTML = '生成中<span class="loading"></span>';
-            btn.disabled = true;
+        async function downloadProfile() {
             try {
-                const res = await fetch(API_DEMO, {
+                const btn = document.getElementById('downloadBtn');
+                btn.innerHTML = '生成檔案中<span class="loading"></span>';
+                btn.disabled = true;
+
+                const response = await fetch("{{ url('/api/generate-pdf') }}", {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
                     body: JSON.stringify({
-                        step: 'output_profile',
-                        character_data: userData.characterData
+                        gender: userData.gender,
+                        character_data: userData.characterData,
+                        style_image_url: userData.styleImageUrl,
+                        uploaded_photo_url: userData.uploadedPhotoUrl,
+                        emotion_data: userData.emotionData,
+                        accessory_data: userData.accessoryData
                     })
                 });
-                const data = await res.json();
-                if (!data.success) throw new Error(data.error || '生成失敗');
-                const profile = document.getElementById('finalProfile');
-                profile.innerHTML = `
-    <div class="profile-box">
-      <h3>🎭 個人風格角色檔案</h3>
-      <p style="margin:12px 0;color:#475569">檔案編號：${data.character_profile.profile_id}</p>
-      ${userData.styleImageUrl ? `<img src="${userData.styleImageUrl}" alt="風格形象" class="generated-img" style="max-width:400px;margin:16px auto" />` : ''}
-      <h4>風格建議</h4>
-      <ul class="insight-list">${data.character_profile.style_recommendations.map(i => `<li>${i}</li>`).join('')}</ul>
-      <h4>個性洞察</h4>
-      <ul class="insight-list">${data.character_profile.personality_insights.map(i => `<li>${i}</li>`).join('')}</ul>
-      <p style="text-align:center;margin-top:20px;font-size:16px">🎉 您的專屬檔案已生成完成</p>
-    </div>`;
-                document.getElementById('downloadBtn').disabled = false;
-                btn.innerHTML = '生成完成';
-                setTimeout(() => {
-                    alert('🎊 恭喜！角色檔案已完成');
-                }, 500);
-            } catch (e) {
-                alert('生成失敗：' + e.message);
-                btn.innerHTML = '重新生成';
-                btn.disabled = false;
-            }
-        }
 
-        function downloadProfile() {
-            const payload = {
-                profile_id: userData.characterData ? 'STYLE_' + Date.now() : 'DEMO_PROFILE',
-                character_type: userData.characterData?.character_archetype || '演示角色',
-                creation_date: new Date().toLocaleString(),
-                style_image_url: userData.styleImageUrl,
-                emotion_analysis: userData.emotionData,
-                style_matching: userData.accessoryData,
-                character_profile: userData.characterData
-            };
-            const blob = new Blob([JSON.stringify(payload, null, 2)], {
-                type: 'application/json'
-            });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `風格角色檔案_${new Date().toISOString().slice(0,10)}.json`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+                const html = await response.text();
+                const newWindow = window.open('', '_blank');
+                newWindow.document.write(html);
+                newWindow.document.close();
+
+                btn.innerHTML = '下載檔案';
+                btn.disabled = false;
+                alert('檔案已在新視窗開啟，您可以使用瀏覽器的列印功能另存為 PDF（Ctrl+P）');
+            } catch (e) {
+                alert('檔案生成失敗：' + e.message);
+                document.getElementById('downloadBtn').innerHTML = '下載檔案';
+                document.getElementById('downloadBtn').disabled = false;
+            }
         }
 
         function nextStep() {
-            if (currentStep < 7) {
-                document.getElementById(`step${currentStep}`).classList.remove('active');
-                document.getElementById(`step${currentStep}`).classList.add('completed');
+            if (currentStep < 4) {
+                document.getElementById('step' + currentStep).classList.remove('active');
+                document.getElementById('step' + currentStep).classList.add('completed');
                 currentStep++;
-                document.getElementById(`step${currentStep}`).classList.add('active');
+                document.getElementById('step' + currentStep).classList.add('active');
                 enableNextStepButton();
-                document.getElementById(`step${currentStep}`).scrollIntoView({
+                document.getElementById('step' + currentStep).scrollIntoView({
                     behavior: 'smooth',
                     block: 'center'
                 });
@@ -874,33 +813,22 @@
         }
 
         function enableNextStepButton() {
-            switch (currentStep) {
-                case 4:
-                    document.getElementById('accessoryBtn').disabled = false;
-                    break;
-                case 5:
-                    document.getElementById('analysisBtn').disabled = false;
-                    break;
-                case 6:
-                    document.getElementById('imageBtn').disabled = false;
-                    break;
-                case 7:
-                    document.getElementById('profileBtn').disabled = false;
-                    break;
+            if (currentStep === 3) {
+                document.getElementById('analysisBtn').disabled = false;
+            } else if (currentStep === 4) {
+                document.getElementById('imageBtn').disabled = false;
             }
         }
 
         function getEmotionText(e) {
             const m = {
-                happy: '開心 😊',
-                sad: '難過 😢',
-                angry: '憤怒 😠',
-                neutral: '平靜 😐',
-                surprised: '驚訝 😲'
+                happy: '開心',
+                sad: '難過',
+                angry: '憤怒',
+                neutral: '平靜',
+                surprised: '驚訝'
             };
             return m[e] || e;
         }
-
-        window.addEventListener('load', generateEntryQR);
     </script>
 @endsection

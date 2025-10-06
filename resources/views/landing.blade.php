@@ -10,7 +10,8 @@
             padding: 0
         }
 
-        html, body {
+        html,
+        body {
             width: 100%;
             height: 100%;
             overflow: hidden
@@ -270,7 +271,6 @@
 
     <!-- 右下角按鈕 -->
     <div class="button-group">
-        <a class="btn secondary" href="{{ route('workflow.test') }}">API 測試</a>
         <a class="btn" href="{{ route('demo') }}">開始體驗</a>
     </div>
 @endsection

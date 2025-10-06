@@ -1,0 +1,33 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class OutfitFormulaSeeder extends Seeder
+{
+    public function run()
+    {
+        $csvFile = database_path('seeders/outfits.csv');
+        $file = fopen($csvFile, 'r');
+        
+        // 跳過標題行
+        fgetcsv($file);
+        
+        while (($data = fgetcsv($file)) !== false) {
+            DB::table('outfit_formulas')->insert([
+                'emotion_sequence' => $data[0],
+                'category' => $data[1],
+                'top' => explode('｜', $data[2])[0] ?? '',
+                'bottom' => explode('｜', $data[2])[1] ?? '',
+                'accessory' => explode('｜', $data[2])[2] ?? '',
+                'explanation' => $data[3],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+        
+        fclose($file);
+    }
+}

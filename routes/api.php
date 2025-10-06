@@ -8,6 +8,7 @@ use App\Http\Controllers\QrGeneratorController;
 use App\Http\Controllers\PhotoUploadController;
 use App\Http\Controllers\Api\DemoApiController;
 use App\Http\Controllers\Api\FalAiController;
+use App\Http\Controllers\PdfController;
 
 use App\Models\User;
 use App\Models\Emotion;
@@ -29,6 +30,9 @@ Route::post('upload-photo', [PhotoUploadController::class, 'uploadPhoto'])->name
 // 產生 QR（正式 API）
 Route::post('generate-qr', [QrGeneratorController::class, 'generate'])->name('api.qr.generate');
 Route::post('generate-profile-qr', [QrGeneratorController::class, 'generateUserProfile'])->name('api.qr.profile');
+
+// PDF 生成
+Route::post('generate-pdf', [PdfController::class, 'generateProfilePdf'])->name('api.pdf.generate');
 
 // fal.ai 圖片生成 API
 Route::prefix('fal')->name('api.fal.')->group(function () {
@@ -56,13 +60,13 @@ Route::get('test-qr', function () {
 
 Route::get('generate-qr-simple', function (Request $request) {
     $content = $request->input('content', '預設測試內容');
-    $size    = max(100, min((int) $request->input('size', 200), 500));
-    $qrUrl   = "https://api.qrserver.com/v1/create-qr-code/?size={$size}x{$size}&data=" . urlencode($content);
+    $size = max(100, min((int) $request->input('size', 200), 500));
+    $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size={$size}x{$size}&data=" . urlencode($content);
     return response()->json(['success' => true, 'qr_url' => $qrUrl]);
 })->name('api.qr.simple');
 
 // 後台清單（admin.html 使用，最小可用）
-Route::get('users',    fn() => User::latest('id')->limit(200)->get())->name('api.users');
+Route::get('users', fn() => User::latest('id')->limit(200)->get())->name('api.users');
 Route::get('emotions', fn() => Emotion::latest('id')->limit(200)->get())->name('api.emotions');
-Route::get('qrcodes',  fn() => Qrcode::latest('id')->limit(200)->get())->name('api.qrcodes');
-Route::get('files',    fn() => File::latest('id')->limit(200)->get())->name('api.files');
+Route::get('qrcodes', fn() => Qrcode::latest('id')->limit(200)->get())->name('api.qrcodes');
+Route::get('files', fn() => File::latest('id')->limit(200)->get())->name('api.files');

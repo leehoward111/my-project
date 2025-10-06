@@ -3,36 +3,35 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use App\Models\File;
 
 class PhotoUploadController extends Controller
 {
-    public function uploadPhoto(Request $request): JsonResponse
+    public function uploadPhoto(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'nullable|integer',
-            'photo'   => 'required|image|mimes:jpeg,png,jpg|max:5120', // 5MB
+            'photo' => 'required|image|max:10240',
+            'gender' => 'required|in:male,female',
         ]);
 
-        // 建立 storage 連結：php artisan storage:link
-        $dir  = 'uploads/photos/' . date('Ymd');
-        $path = $request->file('photo')->store($dir, 'public'); // storage/app/public/...
+        $photo = $request->file('photo');
+        $gender = $validated['gender'];
 
-        $file = File::create([
-            'user_id'  => $validated['user_id'] ?? null,
-            'filename' => basename($path),
-            'filepath' => $path, // 相對於 storage/app/public
-            'filetype' => 'image',
-            'filesize' => $request->file('photo')->getSize(),
-        ]);
+        // 儲存檔案
+        $filename = 'photo_' . time() . '_' . uniqid() . '.' . $photo->getClientOriginalExtension();
+        $photo->move(public_path('uploads/photos'), $filename);
+
+        $localUrl = url('uploads/photos/' . $filename);
+
+        // 轉換成 Base64
+        $photoPath = public_path('uploads/photos/' . $filename);
+        $imageData = file_get_contents($photoPath);
+        $base64 = 'data:image/' . $photo->getClientOriginalExtension() . ';base64,' . base64_encode($imageData);
 
         return response()->json([
-            'success'   => true,
-            'message'   => '照片上傳成功',
-            'file'      => $file,
-            'photo_url' => asset('storage/' . $path), // <img src="...">
-            'next_step' => 'video_emotion'
-        ], 201);
+            'success' => true,
+            'photo_url' => $localUrl,
+            'photo_base64' => $base64,  // 給 API 用
+            'gender' => $gender,
+        ]);
     }
 }
