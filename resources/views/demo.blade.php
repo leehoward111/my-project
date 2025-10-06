@@ -823,10 +823,15 @@
         function getEmotionText(e) {
             const m = {
                 happy: '開心',
-                sad: '難過',
-                angry: '憤怒',
+                excited: '興奮',
+                surprised: '驚喜',
+                curious: '好奇',
                 neutral: '平靜',
-                surprised: '驚訝'
+                focused: '專注',
+                thoughtful: '沉思',
+                relaxed: '放鬆',
+                calm: '從容',
+                inspired: '受啟發'
             };
             return m[e] || e;
         }

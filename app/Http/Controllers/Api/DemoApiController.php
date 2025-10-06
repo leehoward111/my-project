@@ -39,23 +39,53 @@ class DemoApiController extends Controller
      */
     private function videoEmotion()
     {
-        $possibleEmotions = ['happy', 'neutral', 'sad'];
+        // 擴充到 10 種情緒
+        $possibleEmotions = [
+            'happy',        // 開心
+            'excited',      // 興奮
+            'surprised',    // 驚喜
+            'curious',      // 好奇
+            'neutral',      // 平靜
+            'focused',      // 專注
+            'thoughtful',   // 沉思
+            'relaxed',      // 放鬆
+            'calm',         // 從容
+            'inspired'      // 受啟發
+        ];
+
         $emotionSequence = [];
         $chineseSequence = [];
 
         $emotionMap = [
             'happy' => '正向',
+            'excited' => '正向',
+            'surprised' => '正向',
+            'curious' => '正向',
             'neutral' => '中性',
-            'sad' => '負向'
+            'focused' => '中性',
+            'thoughtful' => '中性',
+            'relaxed' => '中性',
+            'calm' => '中性',
+            'inspired' => '正向'
         ];
 
-        // 生成 4 個隨機情緒點
+        // 生成 4 個情緒點，確保有變化性
+        $usedEmotions = [];
         for ($i = 0; $i < 4; $i++) {
-            $emotion = $possibleEmotions[array_rand($possibleEmotions)];
+            // 前 3 個都相同時，強制換一種
+            if ($i >= 3 && count(array_unique($usedEmotions)) === 1) {
+                $availableEmotions = array_diff($possibleEmotions, [$usedEmotions[0]]);
+                $emotion = $availableEmotions[array_rand($availableEmotions)];
+            } else {
+                $emotion = $possibleEmotions[array_rand($possibleEmotions)];
+            }
+
+            $usedEmotions[] = $emotion;
+
             $emotionSequence[] = [
                 'time' => ($i * 15) . 's',
                 'emotion' => $emotion,
-                'confidence' => rand(75, 95) / 100
+                'confidence' => rand(78, 96) / 100
             ];
             $chineseSequence[] = $emotionMap[$emotion];
         }
@@ -78,8 +108,15 @@ class DemoApiController extends Controller
     {
         $summaries = [
             'happy' => '觀看過程中表現出積極正向的情緒反應，對時尚元素展現高度興趣',
+            'excited' => '展現強烈的熱情與活力，對新穎設計充滿期待感',
+            'surprised' => '對創新元素表現出驚喜反應，具有開放接納的心態',
+            'curious' => '保持高度好奇心，願意探索不同風格的可能性',
             'neutral' => '整體情緒保持平穩，展現理性且客觀的觀察態度',
-            'sad' => '情緒較為內斂沉穩，偏好低調優雅的風格表達'
+            'focused' => '專注投入於影片內容，展現深度思考與分析能力',
+            'thoughtful' => '呈現深思熟慮的狀態，偏好經過仔細考量的風格選擇',
+            'relaxed' => '保持輕鬆自在的觀看狀態，展現從容優雅的氣質',
+            'calm' => '維持沉穩平和的心境，傾向簡約內斂的美學',
+            'inspired' => '受到啟發與激勵，展現創造力與想像力'
         ];
         return $summaries[$emotion] ?? '情緒分析完成';
     }
@@ -91,14 +128,22 @@ class DemoApiController extends Controller
     {
         $emotionMap = [
             'happy' => '正向',
+            'excited' => '正向',
+            'surprised' => '正向',
+            'curious' => '正向',
             'neutral' => '中性',
-            'sad' => '負向'
+            'focused' => '中性',
+            'thoughtful' => '中性',
+            'relaxed' => '中性',
+            'calm' => '中性',
+            'inspired' => '正向'
         ];
 
-        // 生成 4 個隨機情緒序列
+        $possibleEmotions = array_keys($emotionMap);
         $sequence = [];
+
         for ($i = 0; $i < 4; $i++) {
-            $randomEmotion = ['happy', 'neutral', 'sad'][array_rand(['happy', 'neutral', 'sad'])];
+            $randomEmotion = $possibleEmotions[array_rand($possibleEmotions)];
             $sequence[] = $emotionMap[$randomEmotion];
         }
 
@@ -123,7 +168,6 @@ class DemoApiController extends Controller
             ]);
         }
 
-        // 找不到完全匹配時，根據類型隨機選擇
         return $this->getDefaultOutfit($emotion);
     }
 
