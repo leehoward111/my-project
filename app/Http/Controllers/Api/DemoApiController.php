@@ -35,26 +35,113 @@ class DemoApiController extends Controller
     }
 
     /**
-     * 影片情緒偵測 - 隨機生成 4 個情緒點
+     * 影片情緒偵測 - 隨機生成 多 個情緒點
      */
     private function videoEmotion()
     {
-        // 擴充到 10 種情緒
-        $possibleEmotions = [
-            'happy',        // 開心
-            'excited',      // 興奮
-            'surprised',    // 驚喜
-            'curious',      // 好奇
-            'neutral',      // 平靜
-            'focused',      // 專注
-            'thoughtful',   // 沉思
-            'relaxed',      // 放鬆
-            'calm',         // 從容
-            'inspired'      // 受啟發
+        $videoNum = request()->input('video_number', 1);
+
+        // 影片 1: 飛機墜毀 - 多組可能的情緒反應
+        $video1Patterns = [
+            [
+                'emotions' => [
+                    ['time' => '0s', 'emotion' => 'neutral', 'confidence' => 0.83],
+                    ['time' => '15s', 'emotion' => 'surprised', 'confidence' => 0.91],
+                    ['time' => '30s', 'emotion' => 'focused', 'confidence' => 0.88],
+                    ['time' => '45s', 'emotion' => 'thoughtful', 'confidence' => 0.85],
+                ],
+                'dominant' => 'surprised',
+                'description' => '驚訝反應型 - 對突發狀況展現高度警覺與專注'
+            ],
+            [
+                'emotions' => [
+                    ['time' => '0s', 'emotion' => 'curious', 'confidence' => 0.80],
+                    ['time' => '15s', 'emotion' => 'focused', 'confidence' => 0.92],
+                    ['time' => '30s', 'emotion' => 'focused', 'confidence' => 0.89],
+                    ['time' => '45s', 'emotion' => 'calm', 'confidence' => 0.84],
+                ],
+                'dominant' => 'focused',
+                'description' => '冷靜分析型 - 保持理性思考與沉著應對'
+            ],
+            [
+                'emotions' => [
+                    ['time' => '0s', 'emotion' => 'neutral', 'confidence' => 0.82],
+                    ['time' => '15s', 'emotion' => 'surprised', 'confidence' => 0.90],
+                    ['time' => '30s', 'emotion' => 'thoughtful', 'confidence' => 0.87],
+                    ['time' => '45s', 'emotion' => 'focused', 'confidence' => 0.86],
+                ],
+                'dominant' => 'thoughtful',
+                'description' => '深度思考型 - 從事件中進行深刻反思'
+            ],
+            [
+                'emotions' => [
+                    ['time' => '0s', 'emotion' => 'relaxed', 'confidence' => 0.81],
+                    ['time' => '15s', 'emotion' => 'surprised', 'confidence' => 0.93],
+                    ['time' => '30s', 'emotion' => 'surprised', 'confidence' => 0.88],
+                    ['time' => '45s', 'emotion' => 'neutral', 'confidence' => 0.83],
+                ],
+                'dominant' => 'surprised',
+                'description' => '震撼感受型 - 對戲劇性畫面產生強烈印象'
+            ],
         ];
 
-        $emotionSequence = [];
-        $chineseSequence = [];
+        // 影片 2: 藍鯨跳躍 - 多組可能的情緒反應
+        $video2Patterns = [
+            [
+                'emotions' => [
+                    ['time' => '0s', 'emotion' => 'curious', 'confidence' => 0.86],
+                    ['time' => '15s', 'emotion' => 'excited', 'confidence' => 0.94],
+                    ['time' => '30s', 'emotion' => 'inspired', 'confidence' => 0.91],
+                    ['time' => '45s', 'emotion' => 'happy', 'confidence' => 0.89],
+                ],
+                'dominant' => 'excited',
+                'description' => '熱情感動型 - 對自然奇觀展現強烈情感共鳴'
+            ],
+            [
+                'emotions' => [
+                    ['time' => '0s', 'emotion' => 'neutral', 'confidence' => 0.84],
+                    ['time' => '15s', 'emotion' => 'surprised', 'confidence' => 0.92],
+                    ['time' => '30s', 'emotion' => 'inspired', 'confidence' => 0.88],
+                    ['time' => '45s', 'emotion' => 'calm', 'confidence' => 0.85],
+                ],
+                'dominant' => 'inspired',
+                'description' => '靈感啟發型 - 從自然美景中獲得啟發與平靜'
+            ],
+            [
+                'emotions' => [
+                    ['time' => '0s', 'emotion' => 'relaxed', 'confidence' => 0.83],
+                    ['time' => '15s', 'emotion' => 'curious', 'confidence' => 0.87],
+                    ['time' => '30s', 'emotion' => 'excited', 'confidence' => 0.90],
+                    ['time' => '45s', 'emotion' => 'inspired', 'confidence' => 0.88],
+                ],
+                'dominant' => 'inspired',
+                'description' => '漸進感動型 - 情緒層層遞進至深受感動'
+            ],
+            [
+                'emotions' => [
+                    ['time' => '0s', 'emotion' => 'calm', 'confidence' => 0.85],
+                    ['time' => '15s', 'emotion' => 'surprised', 'confidence' => 0.91],
+                    ['time' => '30s', 'emotion' => 'happy', 'confidence' => 0.89],
+                    ['time' => '45s', 'emotion' => 'relaxed', 'confidence' => 0.86],
+                ],
+                'dominant' => 'happy',
+                'description' => '愉悅觀賞型 - 享受自然之美帶來的愉悅感'
+            ],
+            [
+                'emotions' => [
+                    ['time' => '0s', 'emotion' => 'neutral', 'confidence' => 0.82],
+                    ['time' => '15s', 'emotion' => 'curious', 'confidence' => 0.88],
+                    ['time' => '30s', 'emotion' => 'surprised', 'confidence' => 0.93],
+                    ['time' => '45s', 'emotion' => 'excited', 'confidence' => 0.90],
+                ],
+                'dominant' => 'surprised',
+                'description' => '驚嘆欣賞型 - 對生命力量展現驚嘆與讚賞'
+            ],
+        ];
+
+        // 根據影片編號選擇對應的情緒組，並隨機選一組
+        $patterns = $videoNum == 1 ? $video1Patterns : $video2Patterns;
+        $template = $patterns[array_rand($patterns)];
 
         $emotionMap = [
             'happy' => '正向',
@@ -69,38 +156,18 @@ class DemoApiController extends Controller
             'inspired' => '正向'
         ];
 
-        // 生成 4 個情緒點，確保有變化性
-        $usedEmotions = [];
-        for ($i = 0; $i < 4; $i++) {
-            // 前 3 個都相同時，強制換一種
-            if ($i >= 3 && count(array_unique($usedEmotions)) === 1) {
-                $availableEmotions = array_diff($possibleEmotions, [$usedEmotions[0]]);
-                $emotion = $availableEmotions[array_rand($availableEmotions)];
-            } else {
-                $emotion = $possibleEmotions[array_rand($possibleEmotions)];
-            }
-
-            $usedEmotions[] = $emotion;
-
-            $emotionSequence[] = [
-                'time' => ($i * 15) . 's',
-                'emotion' => $emotion,
-                'confidence' => rand(78, 96) / 100
-            ];
-            $chineseSequence[] = $emotionMap[$emotion];
-        }
-
-        // 計算主導情緒
-        $emotionCounts = array_count_values(array_column($emotionSequence, 'emotion'));
-        arsort($emotionCounts);
-        $dominantEmotion = key($emotionCounts);
+        $chineseSequence = array_map(function ($item) use ($emotionMap) {
+            return $emotionMap[$item['emotion']];
+        }, $template['emotions']);
 
         return response()->json([
             'success' => true,
-            'emotion_sequence' => $emotionSequence,
+            'emotion_sequence' => $template['emotions'],
             'chinese_sequence' => $chineseSequence,
-            'dominant_emotion' => $dominantEmotion,
-            'analysis_summary' => $this->getEmotionSummary($dominantEmotion)
+            'dominant_emotion' => $template['dominant'],
+            'analysis_summary' => $this->getEmotionSummary($template['dominant']),
+            'video_number' => $videoNum,
+            'emotion_profile' => $template['description']
         ]);
     }
 
@@ -212,36 +279,139 @@ class DemoApiController extends Controller
      */
     private function characterAnalysis($emotion)
     {
-        $characters = [
-            'happy' => [
+        // 將情緒分類
+        $emotionCategory = $this->getEmotionCategory($emotion);
+
+        // 正向情緒 - 多種性格檔案
+        $positiveProfiles = [
+            [
                 'character_archetype' => '陽光探險家',
                 'personality_type' => 'ENFP - 熱情洋溢的活動家',
                 'traits' => ['樂觀開朗', '充滿好奇心', '善於社交', '富有創意'],
                 'style_keywords' => ['活力四射', '色彩繽紛', '休閒舒適', '年輕時尚'],
                 'color_palette' => ['#FFD700', '#FF6B6B', '#4ECDC4', '#95E1D3']
             ],
-            'neutral' => [
+            [
+                'character_archetype' => '熱情冒險者',
+                'personality_type' => 'ESFP - 活力四射的表演者',
+                'traits' => ['外向活潑', '熱愛生活', '即興發揮', '享受當下'],
+                'style_keywords' => ['大膽前衛', '撞色混搭', '街頭潮流', '個性張揚'],
+                'color_palette' => ['#FF1744', '#FFD600', '#00E676', '#00B0FF']
+            ],
+            [
+                'character_archetype' => '創意夢想家',
+                'personality_type' => 'ENTP - 機智靈活的辯論家',
+                'traits' => ['聰明機智', '創新思維', '挑戰傳統', '充滿想像'],
+                'style_keywords' => ['創意混搭', '前衛設計', '實驗風格', '不拘一格'],
+                'color_palette' => ['#9C27B0', '#00BCD4', '#FFEB3B', '#FF5722']
+            ],
+            [
+                'character_archetype' => '活力領導者',
+                'personality_type' => 'ENTJ - 大膽果斷的指揮官',
+                'traits' => ['自信果斷', '目標導向', '領導魅力', '效率至上'],
+                'style_keywords' => ['都會俐落', '專業氣場', '現代簡約', '質感優先'],
+                'color_palette' => ['#212121', '#1976D2', '#C62828', '#F5F5F5']
+            ],
+        ];
+
+        // 中性情緒 - 多種性格檔案
+        $neutralProfiles = [
+            [
                 'character_archetype' => '理性建築師',
                 'personality_type' => 'INTJ - 深思熟慮的策略家',
                 'traits' => ['冷靜理性', '邏輯清晰', '追求效率', '獨立思考'],
                 'style_keywords' => ['簡約俐落', '質感優先', '極簡主義', '都會風格'],
                 'color_palette' => ['#2C3E50', '#7F8C8D', '#BDC3C7', '#ECF0F1']
             ],
-            'sad' => [
+            [
+                'character_archetype' => '沉穩觀察者',
+                'personality_type' => 'ISTJ - 務實可靠的檢查員',
+                'traits' => ['踏實穩重', '注重細節', '責任感強', '傳統經典'],
+                'style_keywords' => ['經典耐看', '低調優雅', '傳統剪裁', '品質至上'],
+                'color_palette' => ['#37474F', '#546E7A', '#78909C', '#B0BEC5']
+            ],
+            [
+                'character_archetype' => '知性分析師',
+                'personality_type' => 'INTP - 創新理性的思想家',
+                'traits' => ['好奇探索', '邏輯分析', '獨立自主', '追求真理'],
+                'style_keywords' => ['知性文藝', '簡約舒適', '實用主義', '低調內斂'],
+                'color_palette' => ['#455A64', '#607D8B', '#90A4AE', '#CFD8DC']
+            ],
+            [
+                'character_archetype' => '平衡協調者',
+                'personality_type' => 'ISFJ - 細心體貼的守護者',
+                'traits' => ['溫和友善', '細心體貼', '穩定可靠', '重視和諧'],
+                'style_keywords' => ['溫柔優雅', '舒適自然', '柔和色調', '親切宜人'],
+                'color_palette' => ['#8D6E63', '#A1887F', '#BCAAA4', '#D7CCC8']
+            ],
+        ];
+
+        // 內斂情緒 - 多種性格檔案
+        $introvertProfiles = [
+            [
                 'character_archetype' => '內斂詩人',
                 'personality_type' => 'INFP - 理想主義的調停者',
                 'traits' => ['情感細膩', '善於觀察', '內斂深沉', '追求意義'],
                 'style_keywords' => ['低調優雅', '內斂沉穩', '文藝氣息', '復古質感'],
                 'color_palette' => ['#34495E', '#5D4E6D', '#8B7E8B', '#A9B2AC']
-            ]
+            ],
+            [
+                'character_archetype' => '藝術靈魂',
+                'personality_type' => 'ISFP - 靈活隨性的藝術家',
+                'traits' => ['敏感細膩', '藝術氣質', '溫和寧靜', '追求美感'],
+                'style_keywords' => ['藝術波西米亞', '自然舒適', '層次搭配', '獨特品味'],
+                'color_palette' => ['#6D4C41', '#8D6E63', '#A1887F', '#D7CCC8']
+            ],
+            [
+                'character_archetype' => '深度思考者',
+                'personality_type' => 'INFJ - 富有洞察力的提倡者',
+                'traits' => ['洞察深刻', '理想主義', '堅定信念', '富有同理心'],
+                'style_keywords' => ['神秘優雅', '深沉內斂', '精緻細膩', '獨特品味'],
+                'color_palette' => ['#263238', '#37474F', '#546E7A', '#78909C']
+            ],
+            [
+                'character_archetype' => '寧靜守護者',
+                'personality_type' => 'ISTP - 冷靜務實的工匠',
+                'traits' => ['冷靜沉著', '實事求是', '獨立自主', '低調內斂'],
+                'style_keywords' => ['機能實用', '簡約俐落', '工裝風格', '耐用質感'],
+                'color_palette' => ['#424242', '#616161', '#757575', '#9E9E9E']
+            ],
         ];
 
-        $profile = $characters[$emotion] ?? $characters['neutral'];
+        // 根據情緒類型選擇對應的性格組
+        $profiles = match ($emotionCategory) {
+            'positive' => $positiveProfiles,
+            'neutral' => $neutralProfiles,
+            'introverted' => $introvertProfiles,
+            default => $neutralProfiles
+        };
+
+        // 隨機選擇一組
+        $profile = $profiles[array_rand($profiles)];
 
         return response()->json([
             'success' => true,
-            'character_profile' => $profile
+            'character_profile' => $profile,
+            'emotion_category' => $emotionCategory
         ]);
+    }
+
+    // 新增輔助函數：將情緒分類
+    private function getEmotionCategory($emotion)
+    {
+        $positiveEmotions = ['happy', 'excited', 'surprised', 'curious', 'inspired'];
+        $neutralEmotions = ['neutral', 'focused', 'calm'];
+        $introvertedEmotions = ['thoughtful', 'relaxed'];
+
+        if (in_array($emotion, $positiveEmotions)) {
+            return 'positive';
+        } elseif (in_array($emotion, $neutralEmotions)) {
+            return 'neutral';
+        } elseif (in_array($emotion, $introvertedEmotions)) {
+            return 'introverted';
+        }
+
+        return 'neutral';
     }
 
     /**
@@ -338,7 +508,8 @@ class DemoApiController extends Controller
 
         $emotionDesc = $emotionMap[$emotion] ?? 'natural expression';
 
-        $prompt = "A professional fashion portrait photograph of {$genderDesc} embodying the '{$archetype}' personality archetype";
+        // 漫畫風格 Prompt（關鍵修改）
+        $prompt = "Anime manga style illustration of {$genderDesc} embodying the '{$archetype}' personality archetype";
         $prompt .= ", with {$emotionDesc}";
         $prompt .= ", fashion style: " . implode(', ', $keywords);
 
