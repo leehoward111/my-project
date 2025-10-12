@@ -73,6 +73,12 @@ RUN bash render-build.sh
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
+# 聲明環境變數（這些會在 runtime 時被 Render 注入的值覆蓋）
+ENV DATABASE_URL=""
+ENV DB_CONNECTION="pgsql"
+ENV APP_ENV="production"
+ENV APP_DEBUG="false"
+
 # 暴露 port
 EXPOSE ${PORT:-80}
 
