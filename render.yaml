@@ -1,20 +1,31 @@
 services:
   - type: web
     name: my-laravel-app
-    runtime: docker           # ✅ PHP 用 Docker（Render 沒有原生 PHP runtime）
+    runtime: php
     region: singapore
     plan: free
-    dockerfilePath: ./Dockerfile
-
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
+      php artisan config:clear
+      php artisan cache:clear
+      php artisan route:clear
+      php artisan view:clear
+      php artisan config:cache
+      php artisan route:cache
+      php artisan view:cache
+    startCommand: |
+      php artisan migrate --force
+      php artisan db:seed --force
+      php artisan serve --host=0.0.0.0 --port=$PORT
     envVars:
-      # === App 基本設定（敏感值請不要 commit，改用 Dashboard 填入）===
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
         value: false
       - key: APP_KEY
-        sync: false           # ✅ 到 Render 後台填，這裡不要寫死
-      # === Log / Cache / Queue（先走檔案/同步，日後可升級 Redis/Queue）===
+        value: base64:tL7ZRYqPnCy6L1UWoPY5+IQXbCwjQcxYKg4zbABmBik=
+      - key: FAL_AI_API_KEY
+        value: b4031abe-d1e2-4c3b-a3a7-88f7c0e33110:31516588ec7afa8317e8f295d711d15d
       - key: LOG_CHANNEL
         value: errorlog
       - key: SESSION_DRIVER
@@ -23,7 +34,6 @@ services:
         value: file
       - key: QUEUE_CONNECTION
         value: sync
-      # === DB：由 Blueprint 建 PostgreSQL 並自動注入連線字串 ===
       - key: DB_CONNECTION
         value: pgsql
       - key: DATABASE_URL
