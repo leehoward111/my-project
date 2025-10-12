@@ -3,25 +3,28 @@
 @section('title', 'AI 個人風格分析 - 體驗流程')
 
 @section('head')
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
-            padding: 0
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
         html,
         body {
             width: 100%;
             min-height: 100vh;
-            overflow-x: hidden
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
-            font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #0f172a
+            color: #0f172a;
+            touch-action: manipulation;
         }
 
         a {
@@ -598,6 +601,141 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* 手機橫屏優化 */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .main {
+                padding: 30px 0 50px;
+            }
+
+            .step-card {
+                padding: 20px 16px;
+            }
+
+            .upload-area {
+                padding: 30px 15px;
+            }
+
+            .video-box {
+                padding: 30px 15px;
+                min-height: 240px;
+            }
+        }
+
+        /* 超小手機優化 */
+        @media (max-width: 374px) {
+            .container {
+                padding: 0 12px;
+            }
+
+            .nav-inner {
+                padding: 0 15px;
+            }
+
+            .brand {
+                font-size: 14px;
+            }
+
+            .brand-badge {
+                width: 26px;
+                height: 26px;
+                font-size: 14px;
+            }
+
+            .step-card {
+                padding: 20px 15px;
+            }
+
+            .step-num {
+                min-width: 38px;
+                height: 38px;
+                font-size: 16px;
+            }
+
+            .step-title {
+                font-size: 16px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            .upload-area {
+                padding: 30px 15px;
+            }
+
+            .preview-img {
+                max-width: 180px;
+                max-height: 180px;
+            }
+        }
+
+        /* 平板優化 */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                max-width: 800px;
+            }
+
+            .step-card {
+                padding: 28px 24px;
+            }
+        }
+
+        /* 大螢幕優化 */
+        @media (min-width: 1400px) {
+            .container {
+                max-width: 1000px;
+            }
+
+            .nav-inner {
+                max-width: 1200px;
+            }
+        }
+
+        /* 觸控裝置優化 */
+        @media (hover: none) and (pointer: coarse) {
+            .btn:hover {
+                transform: none;
+            }
+
+            .btn:active {
+                transform: scale(0.95);
+            }
+
+            .acc-card:hover {
+                transform: none;
+            }
+
+            .acc-card:active {
+                transform: scale(0.98);
+            }
+
+            .upload-area:hover {
+                transform: none;
+                border-color: rgba(102, 126, 234, 0.4);
+                background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+            }
+
+            .upload-area:active {
+                transform: scale(0.98);
+                border-color: #667eea;
+            }
+        }
+
+        /* 確保影片在所有裝置正常顯示 */
+        #emotionVideo {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* 網格在小螢幕自適應 */
+        @media (max-width: 480px) {
+            .grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px;
+            }
+        }
     </style>
 @endsection
 
@@ -1093,5 +1231,22 @@
             };
             return m[e] || e;
         }
+
+        // 防止雙擊縮放
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // 視窗大小改變時調整
+        window.addEventListener('resize', function () {
+            // 強制重新計算佈局
+            document.body.style.height = window.innerHeight + 'px';
+        });
+
     </script>
 @endsection
