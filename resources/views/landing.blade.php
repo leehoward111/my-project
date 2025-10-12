@@ -236,8 +236,11 @@
         /* 右下角按鈕組 */
         .button-group {
             position: fixed;
-            right: 20%;
-            bottom: 5%;
+            right: 50%;
+            /* ← 改：置中定位 */
+            bottom: 8%;
+            transform: translateX(50%);
+            /* ← 新增：真正置中 */
             display: flex;
             gap: 14px;
             z-index: 10;
@@ -418,15 +421,25 @@
             }
 
             .button-group {
-                right: 20px;
-                bottom: 20px;
-                flex-direction: column
+                right: 50%;
+                /* ← 改：置中 */
+                bottom: 30px;
+                transform: translateX(50%);
+                /* ← 新增：真正置中 */
+                flex-direction: column;
+                width: auto;
+                /* ← 新增 */
             }
 
             .btn {
-                padding: 14px 24px;
-                font-size: 1rem;
+                padding: 16px 32px;
+                /* ← 調整：更適合手機 */
+                font-size: 1.1rem;
                 border-radius: 12px;
+                width: auto;
+                /* ← 新增：避免過寬 */
+                white-space: nowrap;
+                /* ← 新增：文字不換行 */
             }
 
             .btn.secondary {
