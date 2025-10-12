@@ -44,8 +44,12 @@ RUN a2enmod rewrite
 # 執行構建腳本
 RUN bash render-build.sh
 
-# 暴露 port
+# 複製並設定 entrypoint 腳本
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# 暴露 port  
 EXPOSE 80
 
-# 啟動 Apache
-CMD ["apache2-foreground"]
+# 使用 entrypoint
+ENTRYPOINT ["docker-entrypoint.sh"]
