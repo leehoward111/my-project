@@ -1,4 +1,5 @@
 services:
+<<<<<<< HEAD
   # Web 應用程式服務
   - type: web
     name: my-laravel-app
@@ -7,6 +8,14 @@ services:
     plan: free
     buildCommand: bash render-build.sh
     startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
+=======
+  - type: web
+    name: my-laravel-app
+    env: docker
+    region: singapore
+    plan: free
+    dockerfilePath: ./Dockerfile
+>>>>>>> d70de04677418f575b4f1b8bc904ef5dca9e6fcd
     envVars:
       - key: APP_ENV
         value: production
@@ -29,10 +38,17 @@ services:
           name: my-laravel-db
           property: connectionString
 
+<<<<<<< HEAD
 # 資料庫服務
+=======
+>>>>>>> d70de04677418f575b4f1b8bc904ef5dca9e6fcd
 databases:
   - name: my-laravel-db
     region: singapore
     plan: free
     databaseName: outfit_formulas_db
+<<<<<<< HEAD
     user: outfit_user
+=======
+    user: outfit_user
+>>>>>>> d70de04677418f575b4f1b8bc904ef5dca9e6fcd
