@@ -1,7 +1,7 @@
 services:
   - type: web
     name: my-laravel-app
-    runtime: docker           # ✅ PHP 用 Docker（不要使用 runtime: php）
+    runtime: docker           # ✅ PHP 用 Docker（Render 沒有原生 PHP runtime）
     region: singapore
     plan: free
     dockerfilePath: ./Dockerfile
@@ -13,8 +13,8 @@ services:
       - key: APP_DEBUG
         value: false
       - key: APP_KEY
-        sync: false           # ✅ 用 Dashboard 輸入，不要寫死在 repo
-      # === Log / Cache / Queue（先走檔案與同步，日後再升級 Redis/隊列）===
+        sync: false           # ✅ 到 Render 後台填，這裡不要寫死
+      # === Log / Cache / Queue（先走檔案/同步，日後可升級 Redis/Queue）===
       - key: LOG_CHANNEL
         value: errorlog
       - key: SESSION_DRIVER
@@ -23,7 +23,7 @@ services:
         value: file
       - key: QUEUE_CONNECTION
         value: sync
-      # === DB：用 Blueprint 建 PostgreSQL 並自動注入連線字串 ===
+      # === DB：由 Blueprint 建 PostgreSQL 並自動注入連線字串 ===
       - key: DB_CONNECTION
         value: pgsql
       - key: DATABASE_URL
