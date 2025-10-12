@@ -1,0 +1,38 @@
+services:
+  # Web 應用程式服務
+  - type: web
+    name: my-laravel-app
+    runtime: php
+    region: singapore
+    plan: free
+    buildCommand: bash render-build.sh
+    startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        value: base64:tL7ZRYqPnCy6L1UWoPY5+IQXbCwjQcxYKg4zbABmBik=
+      - key: FAL_AI_API_KEY
+        value: b4031abe-d1e2-4c3b-a3a7-88f7c0e33110:31516588ec7afa8317e8f295d711d15d
+      - key: LOG_CHANNEL
+        value: errorlog
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: DATABASE_URL
+        fromDatabase:
+          name: my-laravel-db
+          property: connectionString
+
+# 資料庫服務
+databases:
+  - name: my-laravel-db
+    region: singapore
+    plan: free
+    databaseName: outfit_formulas_db
+    user: outfit_user
