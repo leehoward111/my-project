@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
 # 清理快取
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 安裝 PHP 擴展 - 重要：先安裝 pdo 再安裝 pdo_pgsql
+# 安裝 PHP 擴展
 RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-install -j$(nproc) \
         pdo \
@@ -28,9 +28,6 @@ RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
         bcmath \
         gd \
         zip
-
-# 驗證 PostgreSQL 擴展已安裝
-RUN php -m | grep -i pdo
 
 # 安裝 Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -63,21 +60,15 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
 # 啟用 Apache mod_rewrite
 RUN a2enmod rewrite
 
-# 設定 Apache 監聽動態 PORT
-RUN sed -i 's/Listen 80/Listen ${PORT:-80}/' /etc/apache2/ports.conf
-
-# 執行構建腳本（清除和建立快取）
-RUN bash render-build.sh
+# 清除任何可能存在的快取（不建立新快取）
+RUN php artisan config:clear || true
+RUN php artisan cache:clear || true
+RUN php artisan route:clear || true
+RUN php artisan view:clear || true
 
 # 複製並設定 entrypoint 腳本
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# 聲明環境變數
-ENV DATABASE_URL=""
-ENV DB_CONNECTION="pgsql"
-ENV APP_ENV="production"
-ENV APP_DEBUG="false"
 
 # 暴露 port
 EXPOSE ${PORT:-80}
