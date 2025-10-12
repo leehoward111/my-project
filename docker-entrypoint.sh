@@ -1,12 +1,20 @@
 #!/bin/bash
 set -e
 
+echo "========================================"
+echo "🔍 環境變數除錯"
+echo "========================================"
+echo "DATABASE_URL: ${DATABASE_URL:0:30}..." # 只顯示前30字符
+echo "DB_CONNECTION: $DB_CONNECTION"
+echo "APP_ENV: $APP_ENV"
+echo "========================================"
+
 echo "🔍 檢查 PHP 擴展..."
 php -m | grep pdo
 php -m | grep pgsql
 
-echo "🔍 檢查資料庫連接..."
-php artisan db:show || echo "Database connection check failed, but continuing..."
+echo "🔍 測試資料庫連線..."
+php artisan tinker --execute="echo 'DB Connection: ' . config('database.default') . PHP_EOL;"
 
 echo "🗄️  執行資料庫遷移..."
 php artisan migrate --force
