@@ -6,10 +6,3 @@ services:
     plan: free
     dockerfilePath: ./Dockerfile
     dockerCommand: /usr/local/bin/docker-entrypoint.sh
-
-databases:
-  - name: my-laravel-db
-    region: singapore
-    plan: free
-    databaseName: outfit_formulas_db
-    user: outfit_user
