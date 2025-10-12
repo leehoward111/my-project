@@ -12,17 +12,16 @@ echo "DB_CONNECTION: $DB_CONNECTION"
 echo "APP_ENV: $APP_ENV"
 echo "========================================"
 
-# 在 runtime 建立快取（這時環境變數已經有了）
 echo "⚡ 建立配置快取..."
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
 echo "🗄️  執行資料庫遷移..."
-php artisan migrate --force
+php artisan migrate --force || echo "⚠️  Some migrations failed, but continuing..."
 
 echo "🌱 匯入資料..."
-php artisan db:seed --force
+php artisan db:seed --force || echo "⚠️  Seeding had errors, but continuing..."
 
 echo "✅ 完成！"
 echo "🚀 啟動 Apache on port ${PORT:-80}..."
