@@ -17,8 +17,7 @@ cmds = [
     'mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache',
     'chmod -R 775 storage bootstrap/cache',
     'php artisan config:cache',
-    'php artisan route:cache',
-    'php artisan view:cache'
+    'php artisan route:cache'
 ]
 
 [start]
